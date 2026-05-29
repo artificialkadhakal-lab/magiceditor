@@ -2758,7 +2758,9 @@ textarea:focus, input:focus, select:focus {
 }
 
 .access-settings-toggle:hover {
-    color: var(--text-primary);
+    color: var(--color-primary);
+    text-shadow: 0 0 8px rgba(255, 59, 48, 0.4);
+    transform: scale(1.03);
 }
 
 .access-settings-drawer {
@@ -2770,6 +2772,21 @@ textarea:focus, input:focus, select:focus {
     border-radius: var(--radius-md);
     margin-top: 10px;
     box-sizing: border-box;
+}
+
+.access-settings-drawer:not(.hide) {
+    animation: slideDownFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideDownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .access-settings-drawer label {

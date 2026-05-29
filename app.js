@@ -8317,6 +8317,21 @@ async function hashPasscode(passcode) {
     }
 }
 
+async function getAdminPasscodeHash() {
+    try {
+        const db = getFirebaseDb();
+        const doc = await runWithTimeout(db.collection("config").doc("settings").get(), 6000);
+        if (doc.exists && doc.data().adminPasscodeHash) {
+            const hash = doc.data().adminPasscodeHash;
+            localStorage.setItem("li_admin_passcode_hash", hash);
+            return hash;
+        }
+    } catch (e) {
+        console.warn("Failed to fetch admin passcode hash from Firestore, using local storage/fallback:", e);
+    }
+    return localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+}
+
 /* ==========================================================================
    Document Picture-in-Picture (Always-on-top Floating Clipboard)
    ========================================================================== */
@@ -9581,7 +9596,7 @@ async function handleFirebaseRequest(payload) {
         let authorized = false;
         let isSuperAdmin = false;
         const passHash = await hashPasscode(payload.passcode);
-        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        const storedHash = await getAdminPasscodeHash();
         if (passHash === storedHash) {
             authorized = true;
             isSuperAdmin = true;
@@ -9641,7 +9656,7 @@ async function handleFirebaseRequest(payload) {
 
     if (action === "set_user_role") {
         const passHash = await hashPasscode(payload.passcode);
-        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        const storedHash = await getAdminPasscodeHash();
         if (passHash !== storedHash) {
             return { status: "error", message: "Only super admin can change roles." };
         }
@@ -9972,7 +9987,7 @@ function initAccessGate() {
 
     async function handleAdminLogin(key) {
         const passHash = await hashPasscode(key);
-        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        const storedHash = await getAdminPasscodeHash();
         if (passHash === storedHash) {
             localStorage.setItem("li_approved_token", "APPROVED");
             localStorage.setItem("li_admin_authenticated", "true");
@@ -11352,7 +11367,7 @@ function initAdminPanel() {
     btnAuth.addEventListener("click", async () => {
         const password = inputPasscode.value.trim();
         const passHash = await hashPasscode(password);
-        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        const storedHash = await getAdminPasscodeHash();
         if (passHash === storedHash) {
             localStorage.setItem("li_admin_authenticated", "true");
             localStorage.setItem("li_admin_passcode", password);
@@ -12130,7 +12145,7 @@ function initAdminPanel() {
             }
 
             const currentHash = await hashPasscode(currentPlain);
-            const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+            const storedHash = await getAdminPasscodeHash();
 
             if (currentHash !== storedHash) {
                 showCustomNotification("Current passcode is incorrect.", "error");
@@ -12148,6 +12163,15 @@ function initAdminPanel() {
             }
 
             const newHash = await hashPasscode(newPlain);
+            try {
+                const db = getFirebaseDb();
+                await runWithTimeout(db.collection("config").doc("settings").set({
+                    adminPasscodeHash: newHash
+                }, { merge: true }), 8000);
+            } catch (err) {
+                console.error("Failed to save new admin passcode hash to Firestore:", err);
+                showCustomNotification("Warning: Could not sync passcode to cloud database, but saved locally.", "warning");
+            }
             localStorage.setItem("li_admin_passcode_hash", newHash);
             localStorage.setItem("li_admin_passcode", newPlain);
             sessionStorage.setItem("li_admin_passcode", newPlain);
