@@ -9254,15 +9254,15 @@ const FALLBACK_GEMINI_KEY = ["AIzaSyC", "4sbWW3XEW", "iadIl6Nooh", "I0NlKezpur",
 
 const CONFIG = {
     BACKEND_TYPE: 'firebase',
-    GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzltrNArt1NdXTLIvwoU0gs8BCBPY54OFBPKKKlR12I056Qzyxj9o86PIDm5IxdYZrGqw/exec',
+    GOOGLE_SCRIPT_URL: 'firebase-internal-api',
     FIREBASE: {
-        apiKey: localStorage.getItem('li_firebase_api_key') || "AIzaSyBQb5nFLOlxte3Gik0HOVMqbX4wVPMq-rc",
-        authDomain: localStorage.getItem('li_firebase_auth_domain') || "lifeinvdereditor.firebaseapp.com",
-        projectId: localStorage.getItem('li_firebase_project_id') || "lifeinvdereditor",
-        storageBucket: localStorage.getItem('li_firebase_storage_bucket') || "lifeinvdereditor.firebasestorage.app",
-        messagingSenderId: localStorage.getItem('li_firebase_messaging_sender_id') || "327923249616",
-        appId: localStorage.getItem('li_firebase_app_id') || "1:327923249616:web:830f9f4a7e179f8b19c9d5",
-        measurementId: localStorage.getItem('li_firebase_measurement_id') || "G-XWT3LNR438"
+        apiKey: localStorage.getItem('li_firebase_api_key') || "AIzaSyCdnxo1VucOx8g6Kiyh8Vsgutgywc34d7k",
+        authDomain: localStorage.getItem('li_firebase_auth_domain') || "magiceditor-1c034.firebaseapp.com",
+        projectId: localStorage.getItem('li_firebase_project_id') || "magiceditor-1c034",
+        storageBucket: localStorage.getItem('li_firebase_storage_bucket') || "magiceditor-1c034.firebasestorage.app",
+        messagingSenderId: localStorage.getItem('li_firebase_messaging_sender_id') || "661180184092",
+        appId: localStorage.getItem('li_firebase_app_id') || "1:661180184092:web:6a5d19c635aeab115191d9",
+        measurementId: localStorage.getItem('li_firebase_measurement_id') || "G-2MNTSTBZ2C"
     }
 };
 
@@ -9438,7 +9438,8 @@ async function handleFirebaseRequest(payload) {
         let authorized = false;
         let isSuperAdmin = false;
         const passHash = await hashPasscode(payload.passcode);
-        if (passHash === "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560") {
+        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        if (passHash === storedHash) {
             authorized = true;
             isSuperAdmin = true;
         } else if (payload.authUuid || payload.clientUuid) {
@@ -9497,7 +9498,8 @@ async function handleFirebaseRequest(payload) {
 
     if (action === "set_user_role") {
         const passHash = await hashPasscode(payload.passcode);
-        if (passHash !== "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560") {
+        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        if (passHash !== storedHash) {
             return { status: "error", message: "Only super admin can change roles." };
         }
         const clientUuid = payload.clientUuid;
@@ -9827,7 +9829,8 @@ function initAccessGate() {
 
     async function handleAdminLogin(key) {
         const passHash = await hashPasscode(key);
-        if (passHash === "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560") {
+        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        if (passHash === storedHash) {
             localStorage.setItem("li_approved_token", "APPROVED");
             localStorage.setItem("li_admin_authenticated", "true");
             localStorage.setItem("li_admin_passcode", key);
@@ -11206,7 +11209,8 @@ function initAdminPanel() {
     btnAuth.addEventListener("click", async () => {
         const password = inputPasscode.value.trim();
         const passHash = await hashPasscode(password);
-        if (passHash === "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560") {
+        const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+        if (passHash === storedHash) {
             localStorage.setItem("li_admin_authenticated", "true");
             localStorage.setItem("li_admin_passcode", password);
             sessionStorage.setItem("li_admin_authenticated", "true");
@@ -11902,6 +11906,115 @@ function initAdminPanel() {
         // Block accidental normal click behavior
         btnClearAllTranslations.addEventListener("click", (e) => {
             e.preventDefault();
+        });
+    }
+
+    // --- Backend Settings Tab Handling ---
+    const inputFbApiKey = document.getElementById("admin-fb-apikey");
+    const inputFbProjectId = document.getElementById("admin-fb-projectid");
+    const inputFbAuthDomain = document.getElementById("admin-fb-authdomain");
+    const inputFbStorageBucket = document.getElementById("admin-fb-storagebucket");
+    const inputFbMessagingSenderId = document.getElementById("admin-fb-messaging-sender-id");
+    const inputFbAppId = document.getElementById("admin-fb-appid");
+    const inputFbMeasurementId = document.getElementById("admin-fb-measurementid");
+    const btnSaveBackend = document.getElementById("btn-admin-save-backend");
+
+    // Load initial field values from CONFIG
+    if (inputFbApiKey) inputFbApiKey.value = CONFIG.FIREBASE.apiKey;
+    if (inputFbProjectId) inputFbProjectId.value = CONFIG.FIREBASE.projectId;
+    if (inputFbAuthDomain) inputFbAuthDomain.value = CONFIG.FIREBASE.authDomain;
+    if (inputFbStorageBucket) inputFbStorageBucket.value = CONFIG.FIREBASE.storageBucket;
+    if (inputFbMessagingSenderId) inputFbMessagingSenderId.value = CONFIG.FIREBASE.messagingSenderId;
+    if (inputFbAppId) inputFbAppId.value = CONFIG.FIREBASE.appId;
+    if (inputFbMeasurementId) inputFbMeasurementId.value = CONFIG.FIREBASE.measurementId;
+
+    if (btnSaveBackend) {
+        btnSaveBackend.addEventListener("click", () => {
+            const apiKey = inputFbApiKey ? inputFbApiKey.value.trim() : "";
+            const projectId = inputFbProjectId ? inputFbProjectId.value.trim() : "";
+            const authDomain = inputFbAuthDomain ? inputFbAuthDomain.value.trim() : "";
+            const storageBucket = inputFbStorageBucket ? inputFbStorageBucket.value.trim() : "";
+            const messagingSenderId = inputFbMessagingSenderId ? inputFbMessagingSenderId.value.trim() : "";
+            const appId = inputFbAppId ? inputFbAppId.value.trim() : "";
+            const measurementId = inputFbMeasurementId ? inputFbMeasurementId.value.trim() : "";
+
+            if (!apiKey || !projectId) {
+                showCustomNotification("Firebase API Key and Project ID are required.", "error");
+                return;
+            }
+
+            localStorage.setItem("li_firebase_api_key", apiKey);
+            localStorage.setItem("li_firebase_auth_domain", authDomain);
+            localStorage.setItem("li_firebase_project_id", projectId);
+            localStorage.setItem("li_firebase_storage_bucket", storageBucket);
+            localStorage.setItem("li_firebase_messaging_sender_id", messagingSenderId);
+            localStorage.setItem("li_firebase_app_id", appId);
+            localStorage.setItem("li_firebase_measurement_id", measurementId);
+
+            // Update global CONFIG dynamically
+            CONFIG.FIREBASE.apiKey = apiKey;
+            CONFIG.FIREBASE.authDomain = authDomain;
+            CONFIG.FIREBASE.projectId = projectId;
+            CONFIG.FIREBASE.storageBucket = storageBucket;
+            CONFIG.FIREBASE.messagingSenderId = messagingSenderId;
+            CONFIG.FIREBASE.appId = appId;
+            CONFIG.FIREBASE.measurementId = measurementId;
+
+            // Reset Firebase instances to trigger dynamic re-initialization with new configurations
+            fbApp = null;
+            fbDb = null;
+
+            showCustomNotification("Firebase configurations saved and reinitialized!", "success");
+            logSystemEventToBackend("Developer Settings", "Update Backend Configurations", "Updated Firebase backend parameters.");
+        });
+    }
+
+    // --- Admin Passcode Change Handling ---
+    const inputPassCurrent = document.getElementById("admin-passcode-current");
+    const inputPassNew = document.getElementById("admin-passcode-new");
+    const inputPassConfirm = document.getElementById("admin-passcode-confirm");
+    const btnChangePasscode = document.getElementById("btn-admin-change-passcode");
+
+    if (btnChangePasscode) {
+        btnChangePasscode.addEventListener("click", async () => {
+            const currentPlain = inputPassCurrent ? inputPassCurrent.value.trim() : "";
+            const newPlain = inputPassNew ? inputPassNew.value.trim() : "";
+            const confirmPlain = inputPassConfirm ? inputPassConfirm.value.trim() : "";
+
+            if (!currentPlain || !newPlain || !confirmPlain) {
+                showCustomNotification("Please fill out all passcode fields.", "warning");
+                return;
+            }
+
+            const currentHash = await hashPasscode(currentPlain);
+            const storedHash = localStorage.getItem("li_admin_passcode_hash") || "8a8f9bd914d1de31cacb185fe3f278be859e2179891788967320befcd9397560";
+
+            if (currentHash !== storedHash) {
+                showCustomNotification("Current passcode is incorrect.", "error");
+                return;
+            }
+
+            if (newPlain.length < 6) {
+                showCustomNotification("New passcode must be at least 6 characters.", "warning");
+                return;
+            }
+
+            if (newPlain !== confirmPlain) {
+                showCustomNotification("New passcode and confirmation do not match.", "warning");
+                return;
+            }
+
+            const newHash = await hashPasscode(newPlain);
+            localStorage.setItem("li_admin_passcode_hash", newHash);
+            localStorage.setItem("li_admin_passcode", newPlain);
+            sessionStorage.setItem("li_admin_passcode", newPlain);
+
+            if (inputPassCurrent) inputPassCurrent.value = "";
+            if (inputPassNew) inputPassNew.value = "";
+            if (inputPassConfirm) inputPassConfirm.value = "";
+
+            showCustomNotification("Admin passcode updated successfully!", "success");
+            logSystemEventToBackend("Security Panel", "Change Admin Passcode", "Master administrator passcode updated.");
         });
     }
 }

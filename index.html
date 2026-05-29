@@ -602,6 +602,9 @@
                                 <button type="button" class="admin-tab-btn" data-target="tab-users">
                                     <i class="fa-solid fa-users"></i> Users
                                 </button>
+                                <button type="button" class="admin-tab-btn" data-target="tab-backend-settings">
+                                    <i class="fa-solid fa-server" style="color: #60a5fa; margin-right: 4px;"></i> Backend Settings
+                                </button>
                             </div>
 
                             <!-- Tab 1: Pending Access Requests -->
@@ -761,6 +764,99 @@
                                         <i class="fa-solid fa-users-slash" style="font-size: 24px; margin-bottom: 10px; display: block; color: var(--text-muted);"></i>
                                         No authorized users found.
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab 1c: Backend Settings -->
+                            <div id="tab-backend-settings" class="admin-tab-content hide">
+                                <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: stretch; margin-top: 10px;">
+                                    
+                                    <!-- Left Card: Firebase Backend Config -->
+                                    <div class="admin-card" style="flex: 1.2; min-width: 380px; background: rgba(22, 22, 28, 0.4); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md); display: flex; flex-direction: column; justify-content: space-between;">
+                                        <div>
+                                            <h4 style="margin: 0 0 4px 0; font-family: var(--font-heading); color: var(--text-color); font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fa-solid fa-server text-primary" style="color: #60a5fa;"></i> Firebase Backend Configurations
+                                            </h4>
+                                            <p class="section-desc" style="margin: 0 0 15px 0; font-size: 11.5px; opacity: 0.65; line-height: 1.4;">Configure the Firebase Firestore Database credentials below. Keep this information secure.</p>
+                                            
+                                            <!-- Firebase Specific Fields -->
+                                            <div id="admin-firebase-fields" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                                    <div style="display: flex; flex-direction: column;">
+                                                        <label for="admin-fb-apikey" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Firebase API Key</label>
+                                                        <input type="password" id="admin-fb-apikey" placeholder="AIzaSy..." style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; font-family: monospace; outline: none; box-sizing: border-box;">
+                                                    </div>
+                                                    <div style="display: flex; flex-direction: column;">
+                                                        <label for="admin-fb-projectid" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Project ID</label>
+                                                        <input type="text" id="admin-fb-projectid" placeholder="lifeinvader-ads" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11.5px; outline: none; box-sizing: border-box;">
+                                                    </div>
+                                                </div>
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                                    <div style="display: flex; flex-direction: column;">
+                                                        <label for="admin-fb-authdomain" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Auth Domain</label>
+                                                        <input type="text" id="admin-fb-authdomain" placeholder="project-id.firebaseapp.com" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                    </div>
+                                                    <div style="display: flex; flex-direction: column;">
+                                                        <label for="admin-fb-storagebucket" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Storage Bucket</label>
+                                                        <input type="text" id="admin-fb-storagebucket" placeholder="project-id.firebasestorage.app" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                    </div>
+                                                </div>
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                                    <div style="display: flex; flex-direction: column;">
+                                                        <label for="admin-fb-messaging-sender-id" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Messaging Sender ID</label>
+                                                        <input type="text" id="admin-fb-messaging-sender-id" placeholder="e.g. 327923249616" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                    </div>
+                                                    <div style="display: flex; flex-direction: column;">
+                                                        <label for="admin-fb-appid" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">App ID</label>
+                                                        <input type="text" id="admin-fb-appid" placeholder="e.g. 1:3279:web:830f" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                    </div>
+                                                </div>
+                                                <div style="display: flex; flex-direction: column;">
+                                                    <label for="admin-fb-measurementid" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Measurement ID (Optional)</label>
+                                                    <input type="text" id="admin-fb-measurementid" placeholder="e.g. G-XWT3LNR438" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                    <small style="display: block; font-size: 9.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.35;"><i class="fa-solid fa-circle-check"></i> System is configured to run entirely on Firebase Firestore Backend.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="margin-top: 20px; width: 100%;">
+                                            <button type="button" id="btn-admin-save-backend" class="btn-action" style="width: 100%; padding: 10px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0; background: linear-gradient(135deg, rgba(96,165,250,0.2), rgba(96,165,250,0.05)); border: 1px solid rgba(96,165,250,0.45); color: #60a5fa; border-radius: 6px;">
+                                                <i class="fa-solid fa-floppy-disk"></i> Save Configurations
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right Card: Admin Passcode Security -->
+                                    <div class="admin-card" style="flex: 1; min-width: 320px; background: rgba(22, 22, 28, 0.4); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius-md); display: flex; flex-direction: column; justify-content: space-between;">
+                                        <div>
+                                            <h4 style="margin: 0 0 4px 0; font-family: var(--font-heading); color: var(--text-color); font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fa-solid fa-key" style="color: #ff9f0a;"></i> Admin Passcode Security
+                                            </h4>
+                                            <p class="section-desc" style="margin: 0 0 15px 0; font-size: 11.5px; opacity: 0.65; line-height: 1.4;">Change the local master administrator passcode used to unlock the Creator Panel.</p>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                                                <div style="display: flex; flex-direction: column;">
+                                                    <label for="admin-passcode-current" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Current Passcode</label>
+                                                    <input type="password" id="admin-passcode-current" placeholder="Current passcode" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                </div>
+                                                <div style="display: flex; flex-direction: column;">
+                                                    <label for="admin-passcode-new" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">New Passcode</label>
+                                                    <input type="password" id="admin-passcode-new" placeholder="New passcode" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                </div>
+                                                <div style="display: flex; flex-direction: column;">
+                                                    <label for="admin-passcode-confirm" style="display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Confirm New Passcode</label>
+                                                    <input type="password" id="admin-passcode-confirm" placeholder="Confirm new passcode" style="width: 100%; height: 34px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 6px; padding: 0 10px; color: var(--text-primary); font-size: 11px; outline: none; box-sizing: border-box;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="margin-top: 20px; width: 100%;">
+                                            <button type="button" id="btn-admin-change-passcode" class="btn-action glow-red" style="width: 100%; padding: 10px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0; border-radius: 6px;">
+                                                <i class="fa-solid fa-lock-open"></i> Change Passcode
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                             </div>
 
@@ -1189,6 +1285,9 @@
             <span style="opacity: 0.6;">LifeInvader</span> &middot; EN3 Internal Ad Processing System &middot; &copy; 2026
         </footer>
     </div>
+
+    <!-- HTML2Canvas Screenshot Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- Application Script -->
     <script src="app.js?v=27"></script>
