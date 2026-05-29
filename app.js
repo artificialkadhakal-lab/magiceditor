@@ -4331,12 +4331,141 @@ function applyNumberSubstitution(inputText, matchedKey, matchedOutput) {
 }
 
 /* ==========================================================================
-   findTrainedMapping — STRICT exact/canonical lookup only.
-   Trained translations are specific corrections for specific raw inputs.
-   They must NEVER fire on loosely similar or partially matching inputs.
-   Only Tier 1 (exact) and Tier 2 (canonical — minor punctuation/case differences)
-   are allowed. No price-stripping, no token coverage, no fuzzy matching.
+   findTrainedMapping — Semantic/Exact/Canonical database lookup.
    ========================================================================== */
+
+// --- Semantic Learning Helpers ---
+
+function parseNumbersAndPrices(str) {
+    const list = [];
+    const lower = str.toLowerCase();
+    const priceRegex = /(\$?)\b(\d+(?:[\.,]\d+)*)\s*(k|m|mil|ml|million|b|billion|trillion)?\b/gi;
+    let match;
+    const matchedRanges = [];
+    
+    while ((match = priceRegex.exec(lower)) !== null) {
+        const hasDollar = !!match[1];
+        const numStr = match[2];
+        const suffix = match[3] ? match[3].toLowerCase() : "";
+        
+        let numericVal = parseFloat(numStr.replace(/,/g, ""));
+        let multiplier = 1;
+        let isPrice = hasDollar || !!suffix;
+        
+        if (suffix) {
+            if (suffix.startsWith("m")) multiplier = 1000000;
+            else if (suffix.startsWith("k")) multiplier = 1000;
+            else if (suffix.startsWith("b")) multiplier = 1000000000;
+            isPrice = true;
+        } else if (numericVal >= 5000) {
+            isPrice = true;
+        }
+        
+        const finalVal = numericVal * multiplier;
+        const start = match.index;
+        const end = priceRegex.lastIndex;
+        
+        list.push({
+            raw: match[0],
+            value: finalVal,
+            isPrice: isPrice,
+            start: start,
+            end: end
+        });
+        matchedRanges.push([start, end]);
+    }
+    
+    const numRegex = /\b\d+\b/g;
+    while ((match = numRegex.exec(lower)) !== null) {
+        const start = match.index;
+        const end = numRegex.lastIndex;
+        const isOverlap = matchedRanges.some(([s, e]) => (start >= s && start < e) || (end > s && end <= e));
+        if (!isOverlap) {
+            const val = parseInt(match[0], 10);
+            list.push({
+                raw: match[0],
+                value: val,
+                isPrice: false,
+                start: start,
+                end: end
+            });
+        }
+    }
+    
+    list.sort((a, b) => a.start - b.start);
+    return list;
+}
+
+function getSemanticSignature(text) {
+    const list = parseNumbersAndPrices(text);
+    let result = "";
+    let lastIdx = 0;
+    
+    for (const item of list) {
+        result += text.substring(lastIdx, item.start);
+        result += item.isPrice ? "{price}" : "{number}";
+        lastIdx = item.end;
+    }
+    result += text.substring(lastIdx);
+    
+    return result.toLowerCase()
+        .replace(/[^a-z0-9\s{}]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function formatValueLikeOriginal(newVal, originalStr, isPrice) {
+    if (!isPrice) return newVal.toString();
+    
+    if (originalStr.includes("Million") || originalStr.includes("million")) {
+        const mil = newVal / 1000000;
+        return `${mil} Million`;
+    }
+    if (originalStr.includes("Billion") || originalStr.includes("billion")) {
+        const bil = newVal / 1000000000;
+        return `${bil} Billion`;
+    }
+    if (originalStr.includes("k") || originalStr.includes("K")) {
+        const k = newVal / 1000;
+        return `${k}k`;
+    }
+    
+    const hasDots = originalStr.replace(/[^.]/g, "").length >= 1 && !originalStr.includes(",");
+    if (hasDots) {
+        return formatNumberDots(newVal);
+    }
+    return newVal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function substituteSemanticVariables(newRaw, oldKey, oldOutput) {
+    const newItems = parseNumbersAndPrices(newRaw);
+    const oldKeyItems = parseNumbersAndPrices(oldKey);
+    const oldOutItems = parseNumbersAndPrices(oldOutput);
+    
+    if (newItems.length === 0 || oldKeyItems.length === 0 || oldOutItems.length === 0) {
+        return oldOutput;
+    }
+    
+    let result = oldOutput;
+    
+    // Map new input items to old key items by index/type
+    for (let i = 0; i < newItems.length; i++) {
+        const newItem = newItems[i];
+        const oldKeyItem = oldKeyItems[i];
+        if (!oldKeyItem || oldKeyItem.isPrice !== newItem.isPrice) continue;
+        
+        // Find matching values in the output
+        for (const oldOutItem of oldOutItems) {
+            if (oldOutItem.isPrice === newItem.isPrice && oldOutItem.value === oldKeyItem.value) {
+                const formattedNew = formatValueLikeOriginal(newItem.value, oldOutItem.raw, newItem.isPrice);
+                result = result.replace(oldOutItem.raw, formattedNew);
+                break;
+            }
+        }
+    }
+    
+    return result;
+}
 
 function findTrainedMapping(rawText) {
     if (!rawText || !customTranslations) return { found: false };
@@ -4355,8 +4484,6 @@ function findTrainedMapping(rawText) {
     }
 
     // --- Tier 2: Canonical match ---
-    // Strips punctuation/extra spaces but KEEPS all words and numbers.
-    // Allows "sell gun-shop" to match "sell gun shop" but NOT "sell gun shop 300m".
     const canonicalInput = getCanonicalKey(trimmedInput);
     for (const [key, val] of Object.entries(customTranslations)) {
         if (getCanonicalKey(key) === canonicalInput) {
@@ -4370,7 +4497,23 @@ function findTrainedMapping(rawText) {
         }
     }
 
-    // No match — let the standard validation pipeline handle it.
+    // --- Tier 3: Semantic Price & Number Aware match ---
+    const inputSig = getSemanticSignature(trimmedInput);
+    for (const [key, val] of Object.entries(customTranslations)) {
+        const keySig = getSemanticSignature(key);
+        if (keySig === inputSig && keySig !== "") {
+            const originalOutput = extractTranslationValue(val);
+            const replacedOutput = substituteSemanticVariables(trimmedInput, key, originalOutput);
+            return {
+                found: true,
+                fixedText: replacedOutput,
+                matchType: "semantic",
+                similarity: 95,
+                originalKey: key
+            };
+        }
+    }
+
     return { found: false };
 }
 
