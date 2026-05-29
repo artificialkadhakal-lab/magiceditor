@@ -8,7 +8,9 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "scratch/**"
+      "scratch/**",
+      "node-v20.11.1-darwin-arm64/**",
+      "firebase"
     ],
     "rewrites": [
       {
