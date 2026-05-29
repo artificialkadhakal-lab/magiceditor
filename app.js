@@ -15295,7 +15295,7 @@ function initBackupKeyVault() {
                     }
                     if (text) {
                         text = text.trim();
-                        if (text.startsWith("AIzaSy")) {
+                        if (text.startsWith("AIzaSy") || text.startsWith("AQ.")) {
                             if (input) {
                                 input.value = text;
                                 input.placeholder = "••••••••••••••••••••••••••••••••";
@@ -15312,7 +15312,7 @@ function initBackupKeyVault() {
                             
                             showCustomNotification(`API Key pasted into Slot ${slot}! Please click "Save Details" to apply.`, "success");
                         } else {
-                            showCustomNotification(`Invalid Gemini API Key format. Must start with "AIzaSy".`, "error");
+                            showCustomNotification(`Invalid Gemini API Key format. Must start with "AIzaSy" or "AQ.".`, "error");
                         }
                     }
                 } catch (e) {
@@ -15920,9 +15920,9 @@ function initGeminiEngine() {
             const input = row?.querySelector(`.vault-key-input`);
             if (input) {
                 const val = input.value.trim();
-                if (val && !val.startsWith("AIzaSy")) {
+                if (val && !val.startsWith("AIzaSy") && !val.startsWith("AQ.")) {
                     hasInvalidKey = true;
-                    showCustomNotification(`Slot ${slot}: Invalid Gemini API Key format. Must start with "AIzaSy".`, "error");
+                    showCustomNotification(`Slot ${slot}: Invalid Gemini API Key format. Must start with "AIzaSy" or "AQ.".`, "error");
                     continue;
                 }
                 if (val) {
