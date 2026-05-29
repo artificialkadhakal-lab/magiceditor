@@ -16362,14 +16362,13 @@ function getGeminiSparkSuggestion(rawText, category, callback) {
     const customDirectives = "";
     const dbContext = getDatabaseMatchesContext(rawText);
     const policyContext = getPolicyMatchesContext(rawText);
-    const fullPolicyContext = getCompletePolicyContext();
     
     // Build the policy prompt context
     const prompt = `You are a strict and professional advertisement editor for LifeInvader.
 Your task is to correct and format the user's raw advertisement input strictly according to the official LifeInvader internal formatting policy:
 
 [CRITICAL GROUNDING DIRECTIVE]:
-You MUST strictly correct the ad and reply based ONLY on the provided LifeInvader Internal Policy manual. Do NOT use real-life logic, external facts, standard grammatical conventions, or common sense if they conflict with the policy manual. The provided Policy Manual Reference is the absolute and only source of truth.
+You MUST strictly correct the ad and reply based ONLY on the provided LifeInvader Internal Policy manual sections. Do NOT use real-life logic, external facts, standard grammatical conventions, or common sense if they conflict with the policy manual. The provided Policy Manual Reference is the absolute and only source of truth.
 
 ### Core Formatting Rules:
 1. Always begin the ad with one of these exact action words: "Buying", "Selling", "Trading", "Selling or trading". The first letter must ALWAYS be capitalized.
@@ -16417,11 +16416,6 @@ ${customDirectives ? `\nADDITIONAL ADMIN DIRECTIVES:\n${customDirectives}\n` : "
 ${dbContext}
 ${policyContext}
 
-=========================================
-COMPLETE LIFEINVADER OFFICIAL POLICY MANUAL REFERENCE:
-${fullPolicyContext}
-=========================================
-
 Translate this raw ad input: "${rawText}"
 Target category: "${category}"
 
@@ -16462,7 +16456,6 @@ function getGeminiBugTriageSuggestion(rawText, expectedText, category, screensho
     const customDirectives = "";
     const dbContext = getDatabaseMatchesContext(rawText);
     const policyContext = getPolicyMatchesContext(rawText);
-    const fullPolicyContext = getCompletePolicyContext();
     
     let imagePart = null;
     if (screenshotBase64) {
@@ -16489,14 +16482,13 @@ Bug Report Details:
 ${expectedText ? `- Expected Output (User's desired fix/claim): "${expectedText}"` : ""}
 
 Task:
-1. Scan and analyze ALL 51 pages of the complete LifeInvader Official Policy Manual provided below to ensure absolute compliance with all spelling, terminology, and syntax rules.
+1. Scan and analyze the provided relevant sections of the LifeInvader Official Policy Manual to ensure absolute compliance with all spelling, terminology, and syntax rules.
 2. Automatically generate the exact, fully corrected advertisement text.
 3. Explain the main reason for the correction.
 4. Generate additional detailed reference notes citing the specific policy manual pages, rules, or lists applied for verification.
 
-=== COMPLETE POLICY MANUAL REFERENCE ===
-${fullPolicyContext}
-=========================================
+${dbContext}
+${policyContext}
 
 ${customDirectives ? `\nADDITIONAL ADMIN DIRECTIVES:\n${customDirectives}\n` : ""}
 
@@ -16589,12 +16581,11 @@ function runGeminiCopilotTurn(report, category, userMessageText, callback) {
     }
 
     const customDirectives = "";
-    const fullPolicyContext = getCompletePolicyContext();
     const systemPrompt = `You are a strict and professional advertisement editor for LifeInvader.
 Your task is to correct and format the user's raw advertisement input strictly according to the official LifeInvader internal formatting policy:
 
 [CRITICAL GROUNDING DIRECTIVE]:
-You MUST strictly correct the ad and reply based ONLY on the provided LifeInvader Internal Policy manual. Do NOT use real-life logic, external facts, standard grammatical conventions, or common sense if they conflict with the policy manual. The provided Policy Manual Reference is the absolute and only source of truth.
+You MUST strictly correct the ad and reply based ONLY on the provided LifeInvader Internal Policy manual sections. Do NOT use real-life logic, external facts, standard grammatical conventions, or common sense if they conflict with the policy manual. The provided Policy Manual Reference is the absolute and only source of truth.
 
 ### Core Formatting Rules:
 1. Always begin the ad with one of these exact action words: "Buying", "Selling", "Trading", "Selling or trading". The first letter must ALWAYS be capitalized.
@@ -16637,11 +16628,6 @@ You MUST strictly correct the ad and reply based ONLY on the provided LifeInvade
    - If no Bet is specified: Use "Bet: Negotiable."
    - The maximum allowed bet is "$10 Million". Any bet above $10 Million must be changed to "Bet: Negotiable."
 7. Format phone numbers in "№ XX-XX-XXX" or "№ XX-XX-XX" format if present.
-
-=========================================
-COMPLETE LIFEINVADER OFFICIAL POLICY MANUAL REFERENCE:
-${fullPolicyContext}
-=========================================
 
 ${customDirectives ? `\nADDITIONAL ADMIN DIRECTIVES:\n${customDirectives}\n` : ""}
 
